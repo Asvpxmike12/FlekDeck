@@ -66,6 +66,15 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     /// What to tell the user when an app set to launch with JIT was not started
     /// because JIT is not set up; nil while there is nothing to tell.
     @State private var jitNotReadyMessage: String?
+    // Split out of the .alert call in body: Swift 6's type checker cannot
+    // resolve the inline Binding literal inside the modifier chain in
+    // reasonable time when building with the iOS 26 SDK.
+    private var jitNotReadyAlertIsPresented: Binding<Bool> {
+        Binding(
+            get: { jitNotReadyMessage != nil },
+            set: { newValue in if !newValue { jitNotReadyMessage = nil } }
+        )
+    }
     /// Kept after the warning has gone, so that it does not blank on its way out.
     @State private var jitNotReadyTitle = "lc.flek.jit.notReady.title".loc
     /// A warning to put up once the one that is up has gone: an alert keeps
@@ -675,10 +684,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         } message: {
             Text(errorInfo)
         }
-        .alert(jitNotReadyTitle, isPresented: Binding(
-            get: { jitNotReadyMessage != nil },
-            set: { if !$0 { jitNotReadyMessage = nil } }
-        )) {
+        .alert(jitNotReadyTitle, isPresented: jitNotReadyAlertIsPresented) {
             if waitingLaunch == nil {
                 Button("lc.tabView.settings".loc) {
                     handleHomeTap(.defaultApp(.settings))
