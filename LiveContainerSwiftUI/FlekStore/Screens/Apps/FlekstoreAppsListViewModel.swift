@@ -74,7 +74,10 @@ class FlekstoreAppsListViewModel: ObservableObject {
         case flekstore
         case custom(url: String)
     }
-    @Published var repository: RepositorySource = .flekstore
+    /// No built-in source is selected until the installer picks one: the
+    /// FlekSt0re source was removed from the build, so the default must not
+    /// fetch its catalog.
+    @Published var repository: RepositorySource = .custom(url: "")
     
     private func currentEndpoint() -> URL? {
         switch repository {

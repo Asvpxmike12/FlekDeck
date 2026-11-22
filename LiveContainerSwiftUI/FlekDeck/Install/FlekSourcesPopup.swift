@@ -4,9 +4,8 @@
 //
 //  Source management popup for the Installer. Lets the user add a repository
 //  (validated by fetching its manifest), pick one (which opens its catalog),
-//  and — in edit mode — delete sources or drag them into a new order (the
-//  default FlekSt0re source is protected and stays on top). Persists to the
-//  same UserDefaults("savedRepositories") store used elsewhere, so the
+//  and — in edit mode — delete sources or drag them into a new order. Persists
+//  to the same UserDefaults("savedRepositories") store used elsewhere, so the
 //  Installer's source pills follow the same order.
 //
 
@@ -202,7 +201,7 @@ struct FlekSourcesPopup: View {
               let current = repos.firstIndex(where: { $0.id == repo.id }) else { return }
 
         let pitch = rowHeight + Self.rowSpacing
-        // FlekSt0re stays on top: nothing is dropped above it.
+        // Nothing is pinned on top any more: every source can be moved anywhere.
         let firstMovable = (repos.lastIndex(where: { FlekInstallerView.isFlekstore($0) }) ?? -1) + 1
         let target = min(max(dragStartIndex + Int((translation / pitch).rounded()), firstMovable),
                          repos.count - 1)

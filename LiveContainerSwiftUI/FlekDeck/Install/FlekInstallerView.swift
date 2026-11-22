@@ -31,6 +31,9 @@ extension Notification.Name {
 }
 
 struct FlekInstallerView: View {
+    /// Retained for call-site compatibility. No longer selects anything: the
+    /// FlekSt0re source was removed from the build, so the installer falls
+    /// back to the first saved source instead.
     var preselectFlekstore: Bool
     var preselectRepoURL: String? = nil
     var onClose: () -> Void
@@ -134,8 +137,8 @@ struct FlekInstallerView: View {
     static var pendingDetailRequest: DetailRequest?
 
     /// Repo selected during this app session. A static resets on process
-    /// relaunch, so the installer defaults back to FlekSt0re after an app
-    /// restart while still remembering the choice within a session.
+    /// relaunch, so the installer defaults back to the first source after an
+    /// app restart while still remembering the choice within a session.
     private static var sessionSelectedRepoURL: String?
 
     /// The device's own bottom safe-area inset — the home indicator, if there is one.
@@ -257,20 +260,20 @@ struct FlekInstallerView: View {
             if let repoURL = preselectRepoURL, let match = repos.first(where: { $0.sourceURL == repoURL }) {
                 selectedRepoID = match.id
                 viewModel.repository = Self.source(for: match)
-            } else if preselectFlekstore, let flek = repos.first(where: { Self.isFlekstore($0) }) {
-                selectedRepoID = flek.id
-                viewModel.repository = .flekstore
             } else if let sessionURL = Self.sessionSelectedRepoURL,
                       let match = repos.first(where: { $0.sourceURL == sessionURL }) {
                 // Remember the pick within this app session only.
                 selectedRepoID = match.id
                 viewModel.repository = Self.source(for: match)
-            } else if let flek = repos.first(where: { Self.isFlekstore($0) }) {
-                // Fresh launch (or nothing to restore): default to FlekSt0re.
-                selectedRepoID = flek.id
-                viewModel.repository = .flekstore
+            } else if let first = repos.first {
+                // Fresh launch (or nothing to restore): default to the first
+                // source. (preselectFlekstore no longer selects anything: the
+                // FlekSt0re source was removed from the build.)
+                selectedRepoID = first.id
+                viewModel.repository = Self.source(for: first)
             } else {
-                viewModel.repository = .flekstore
+                // No sources at all: nothing to fetch from.
+                viewModel.repository = .custom(url: "")
             }
             // A page asked for from outside opens as soon as this one has finished
             // arriving, rather than waiting on the catalog loading behind it.
@@ -298,13 +301,13 @@ struct FlekInstallerView: View {
             if let selectedURL, let match = repos.first(where: { $0.sourceURL == selectedURL }) {
                 selectedRepoID = match.id
             }
-            // The source shown was removed: FlekSt0re, rather than its apps
-            // under no pill, still there to refresh and install.
+            // The source shown was removed: fall back to the first remaining
+            // source, rather than leaving its apps under no pill.
             if case .custom(let shownURL) = viewModel.repository,
                !repos.contains(where: { $0.sourceURL == shownURL }),
-               let flekstore = repos.first(where: { Self.isFlekstore($0) }) {
-                selectedRepoID = flekstore.id
-                Task { await switchTo(flekstore) }
+               let first = repos.first {
+                selectedRepoID = first.id
+                Task { await switchTo(first) }
             }
             // The sources may have been reordered, so the neighbours with them.
             loadNeighbourCatalogs()

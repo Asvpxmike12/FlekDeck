@@ -330,30 +330,39 @@ struct LCTabView: View {
     }
     
     private func setupInitialRepositoriesIfNeeded() {
+        // Migration: the FlekSt0re Lib and Nabzclan sources were removed from
+        // this build. Strip them from any install that already saved them, so
+        // an update does not keep showing them.
+        if let data = UserDefaults.standard.data(forKey: "savedRepositories"),
+           var saved = try? JSONDecoder().decode([AppRepository].self, from: data) {
+            let before = saved.count
+            saved.removeAll { repo in
+                FlekInstallerView.isFlekstore(repo)
+                || repo.name == "Nabzclan - App Store"
+                || repo.sourceURL == "https://appstore.nabzclan.vip/repos/altstore.php"
+            }
+            if saved.count != before {
+                if !saved.contains(where: { $0.isSelected }), !saved.isEmpty {
+                    saved[0].isSelected = true
+                }
+                if let data = try? JSONEncoder().encode(saved) {
+                    UserDefaults.standard.set(data, forKey: "savedRepositories")
+                }
+            }
+        }
+
         let didSetupKey = "DidSetupDefaultRepositories"
-        
+
         guard !UserDefaults.standard.bool(forKey: didSetupKey) else {
             return
         }
-        
+
         let defaultApps: [AppRepository] = [
-            AppRepository(
-                name: "FlekSt0re Lib",
-                iconUrl: "https://flekstore.com/pro_app/icons/apple-touch-icon.png",
-                sourceURL: "Default app catalog",
-                isSelected: true
-            ),
-            AppRepository(
-                name: "Nabzclan - App Store",
-                iconUrl: "https://cdn.nabzclan.vip/popupv3/imgs/logo-tras.png",
-                sourceURL: "https://appstore.nabzclan.vip/repos/altstore.php",
-                isSelected: false
-            ),
             AppRepository(
                 name: "AppTesters IPA Repo",
                 iconUrl: "https://apptesters.org/apptesters-512x512.png",
                 sourceURL: "https://repository.apptesters.org/",
-                isSelected: false
+                isSelected: true
             ),
             AppRepository(
                 name: "Quantum Source",
