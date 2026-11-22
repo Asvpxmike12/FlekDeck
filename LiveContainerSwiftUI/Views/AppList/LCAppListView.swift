@@ -92,6 +92,15 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @State var errorInfo = ""
     /// The failed install the user tapped, driving the failed-install alert.
     @State private var failedInstallItem: InstallItem?
+    // Split out of the .alert call in body: Swift 6's type checker cannot
+    // resolve the inline Binding literal (with `presenting:`) inside the
+    // modifier chain in reasonable time when building with the iOS 26 SDK.
+    private var failedInstallAlertIsPresented: Binding<Bool> {
+        Binding(
+            get: { failedInstallItem != nil },
+            set: { newValue in if !newValue { failedInstallItem = nil } }
+        )
+    }
     
     // ipa installing stuff
     @ObservedObject var installQueue = LCInstallQueue.shared
@@ -704,10 +713,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
             retryWaitingLaunch()
         }
-        .alert("lc.flek.installFailedTitle".loc, isPresented: Binding(
-            get: { failedInstallItem != nil },
-            set: { if !$0 { failedInstallItem = nil } }
-        ), presenting: failedInstallItem) { item in
+        .alert("lc.flek.installFailedTitle".loc, isPresented: failedInstallAlertIsPresented, presenting: failedInstallItem) { item in
             Button("lc.common.delete".loc, role: .destructive) {
                 installQueue.dismissFailed(item)
                 failedInstallItem = nil
