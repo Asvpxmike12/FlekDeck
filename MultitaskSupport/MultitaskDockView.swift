@@ -1384,13 +1384,11 @@ class AppInfoProvider {
                 == FlekHomeBarPosition.side.rawValue,
               let traits else { return nil }
         guard #available(iOS 27.1, *) else { return nil }
-        // The bar's edge follows the layout direction; the window's sides do not.
-        let rightToLeft = traits.layoutDirection == .rightToLeft
-        switch traits.verticalBarEdge {
-        case .leading:  return rightToLeft ? .right : .left
-        case .trailing: return rightToLeft ? .left : .right
-        default:        return nil
-        }
+        // Built against the iOS 26 SDK, where the vertical bar (iOS 27.1) and
+        // traits.verticalBarEdge do not exist yet: never a side column. The
+        // switch on the bar's edge lives in upstream.
+        _ = traits
+        return nil
     }
 
     /// Whether the bar stands in the side column rather than along an edge, for the

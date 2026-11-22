@@ -289,22 +289,11 @@ struct FlekReadableColumn: ViewModifier {
 struct FlekVerticalBarEdgeReader: View {
     @Binding var edge: HorizontalEdge?
 
+    // Built against the iOS 26 SDK, where the vertical bar (iOS 27.1) and its
+    // environment value do not exist yet: there is never a bar to report, so
+    // edge stays nil. The iOS 27.1 Observer that read it lives in upstream.
     var body: some View {
-        if #available(iOS 27.1, *) {
-            Observer(edge: $edge)
-        }
-    }
-
-    @available(iOS 27.1, *)
-    private struct Observer: View {
-        @Environment(\.toolbarVerticalEdge) private var current
-        @Binding var edge: HorizontalEdge?
-
-        var body: some View {
-            Color.clear
-                .onAppear { edge = current }
-                .onChange(of: current) { _, new in edge = new }
-        }
+        EmptyView()
     }
 }
 

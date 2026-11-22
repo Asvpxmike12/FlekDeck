@@ -1748,33 +1748,12 @@ private struct RepoPillSurface: ViewModifier {
 /// the shadows above and below, and the other end, draw as before. With no
 /// vertical bar nothing is cut at all.
 private struct VerticalBarSideClip: ViewModifier {
+    // Built against the iOS 26 SDK, where the vertical bar (iOS 27.1) and its
+    // environment value do not exist yet: there is never a bar to clip for, so
+    // this passes content through. The iOS 27.1 Cut that clipped it lives in
+    // upstream.
     func body(content: Content) -> some View {
-        if #available(iOS 27.1, *) {
-            content.modifier(Cut())
-        } else {
-            content
-        }
-    }
-
-    @available(iOS 27.1, *)
-    private struct Cut: ViewModifier {
-        @Environment(\.toolbarVerticalEdge) private var barEdge
-        @Environment(\.layoutDirection) private var layoutDirection
-
-        // Clipped whether or not there is a bar, to a shape that cuts nothing
-        // without one, so that folding or unfolding does not rebuild the row and
-        // lose how far it was scrolled.
-        func body(content: Content) -> some View {
-            content.clipShape(OneSideCut(side: barSide))
-        }
-
-        /// The bar's side on screen: its edge follows the layout direction, and the
-        /// clip is drawn left to right.
-        private var barSide: OneSideCut.Side? {
-            guard let barEdge else { return nil }
-            let isTrailing = barEdge == .trailing
-            return isTrailing == (layoutDirection == .leftToRight) ? .right : .left
-        }
+        content
     }
 }
 
