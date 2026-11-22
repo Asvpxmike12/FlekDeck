@@ -22,7 +22,7 @@ struct AppsWidgetConfiguration: WidgetConfigurationIntent {
     var apps: [WidgetAppEntity]?
 
     static var parameterSummary: some ParameterSummary {
-        When(\.$show, .equalTo, .chosen) {
+        When(\AppsWidgetConfiguration.$show, .equalTo, .chosen) {
             Summary {
                 \.$show
                 \.$apps

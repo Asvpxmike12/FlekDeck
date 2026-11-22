@@ -17,8 +17,8 @@ struct FlekDeckWidgets: WidgetBundle {
         _ = SystemGlassBackground.isInstalled
     }
 
-    // One widget for each size, 2×2, 2×4, 4×4 and from iOS 27 on 4×6, rather
-    // than one widget in four sizes. The home screen only offers to resize a
+    // One widget for each size, 2×2, 2×4 and 4×4, rather
+    // than one widget in three sizes. The home screen only offers to resize a
     // widget into another size of its own, so these can't be resized in place:
     // a resized widget loses its glass (SystemGlassBackground), while one
     // added at its size always has it.
@@ -26,9 +26,6 @@ struct FlekDeckWidgets: WidgetBundle {
         AppsWidget<SmallAppsWidget>()
         AppsWidget<MediumAppsWidget>()
         AppsWidget<LargeAppsWidget>()
-        if #available(iOS 27.0, *) {
-            AppsWidget<ExtraLargeAppsWidget>()
-        }
     }
 }
 
@@ -53,12 +50,6 @@ enum LargeAppsWidget: AppsWidgetSize {
     static let family = WidgetFamily.systemLarge
 }
 
-@available(iOS 27.0, *)
-enum ExtraLargeAppsWidget: AppsWidgetSize {
-    static let kind = WidgetAppList.Kind.extraLargePortrait
-    static let family = WidgetFamily.systemExtraLargePortrait
-}
-
 struct AppsWidget<Size: AppsWidgetSize>: Widget {
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: Size.kind, intent: AppsWidgetConfiguration.self,
@@ -77,9 +68,6 @@ extension WidgetFamily {
     /// The icons a widget of this size holds, as columns by rows: as many as
     /// the home screen fits in the same space.
     var iconGrid: (columns: Int, rows: Int) {
-        if #available(iOS 27.0, *), self == .systemExtraLargePortrait {
-            return (4, 6)
-        }
         switch self {
         case .systemSmall: return (2, 2)
         case .systemMedium: return (4, 2)
