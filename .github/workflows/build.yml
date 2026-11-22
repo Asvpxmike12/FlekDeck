@@ -23,7 +23,6 @@ jobs:
 
       - name: Build and Archive
         run: |
-          set -o pipefail
           xcodebuild clean archive \
             -project "LiveContainer.xcodeproj" \
             -scheme "LiveContainer" \
@@ -31,7 +30,7 @@ jobs:
             -archivePath $PWD/build/LiveContainer.xcarchive \
             -destination "generic/platform=iOS" \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
-          | xcpretty
+            OTHER_CFLAGS="\$(inherited) -Wno-shorten-64-to-32"
 
       - name: Create IPA
         run: |
